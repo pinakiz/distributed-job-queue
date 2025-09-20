@@ -25,8 +25,7 @@ func main(){
 	db_password := os.Getenv("DBPASSWORD")
 	db_name := os.Getenv("DBNAME")
 
-	postgresDSN := fmt.Sprintf("host=%s port=%d user=%s "+
-    "password=%s dbname=%s sslmode=disable",
+	postgresDSN := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
     db_host, db_port, db_user, db_password, db_name)
 
 	dbStore , err := database.Init_db(postgresDSN);
@@ -41,7 +40,7 @@ func main(){
 	if(err != nil){
 		fmt.Println(err);
 	}
-
+	
 	producerService := producer.Producer(dbStore , broker);
 
 	apiHandler := api.Init_API(producerService);
@@ -53,4 +52,5 @@ func main(){
 		log.Fatal("Server Crash: ",err);
 		return;
 	}
+	
 }
