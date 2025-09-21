@@ -19,7 +19,7 @@ func main(){
 	
 	err := godotenv.Load();
 	if(err != nil){
-		log.Fatal("Error: failed env loading ,%v", err);
+		log.Fatal("Error: failed env loading", err);
 	}
 	listenAddr := ":8080";
 	db_host := os.Getenv("DBHOST")

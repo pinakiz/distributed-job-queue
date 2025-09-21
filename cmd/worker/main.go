@@ -36,7 +36,6 @@ func main(){
 		return
 	}
 	queue_url := os.Getenv("RABBIT_URL");
-	fmt.Println(db_host)
 	broker , err:= queue.Init_queue(queue_url);
 
 	if(err != nil){

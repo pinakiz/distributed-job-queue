@@ -3,7 +3,6 @@ package api
 import (
 	"djq/internals/producer"
 	"encoding/json"
-	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -35,11 +34,9 @@ func (apiHandler *API) HandleCreateJob(w http.ResponseWriter , r *http.Request){
 	}
 	var res  CreateJobRequest; 
 	if err := json.Unmarshal(body , &res); err != nil{
-		fmt.Println(res);
 		log.Println("error while parsing the body: " , err);
 		http.Error(w , "failed reading the body" , http.StatusInternalServerError);
 	}
-	fmt.Println(res.JobPayload)
 	job, err := apiHandler.producer.CreateJob(res.JobType, res.JobPayload);
 	if(err != nil){
 		log.Println("Error while creating the job: " , err);
