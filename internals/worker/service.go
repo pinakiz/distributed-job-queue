@@ -54,7 +54,7 @@ func (s *Service) Run (){
 				log.Printf("Error: failed to process the job: %v" , job.Id);
 				s.db.UpdateJobStatus(job.Id, models.StatusFailed);
 			}else{
-				log.Printf("Successfully process the job: %v" , job.Id);
+				log.Printf("Successfully processed the job: %v" , job.Id);
 				s.db.UpdateJobStatus(job.Id , models.StatusCompleted);
 				del.Ack(false);
 			}

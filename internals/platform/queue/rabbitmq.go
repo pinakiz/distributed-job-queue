@@ -65,7 +65,7 @@ func (broker *QueueStore) Publish (job *models.Job){
 
 func (broker *QueueStore) Consume()(<-chan amqp.Delivery , error){
 	err := broker.Channel.Qos(
-		1,
+		2,
 		0,
 		false,
 	)
