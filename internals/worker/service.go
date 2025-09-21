@@ -7,6 +7,8 @@ import (
 	"encoding/json"
 	"log"
 	"time"
+
+	"github.com/streadway/amqp"
 )
 
 
@@ -32,16 +34,16 @@ func (s *Service) Run (){
 
 	log.Println("Worker is running and waiting for the jobs...");
 
-	go func(){
-		for d := range msg{
+	for d := range msg{
+		go func (del amqp.Delivery){
 			var job models.Job;
-			if err := json.Unmarshal(d.Body , &job); err != nil{
+			if err := json.Unmarshal(del.Body , &job); err != nil{
 				log.Printf("Error: couldn't decode job json: %v , Message will be discarded" , err);
-				d.Nack(false, false)
+				del.Nack(false, false)
 				if er := s.db.UpdateJobStatus(job.Id , models.StatusFailed); er != nil{
 					log.Printf("Error: Status update failes: %v" , er);
 				};
-				continue;
+				return;
 			}
 			log.Printf("Received job: %s. Starting processing..." , job.Id);
 			if err := s.db.UpdateJobStatus(job.Id , models.StatusProcessing);err != nil{
@@ -54,10 +56,10 @@ func (s *Service) Run (){
 			}else{
 				log.Printf("Successfully process the job: %v" , job.Id);
 				s.db.UpdateJobStatus(job.Id , models.StatusCompleted);
-				d.Ack(false);
+				del.Ack(false);
 			}
-		}
-	}();
+		}(d)
+	}
 	<- forever;
 }
 
@@ -65,7 +67,7 @@ func (s *Service) handleJob(job *models.Job) error {
 		switch job.Type {
 	case "send_email":
 		log.Printf("Simulating sending email for job %s with payload: %s", job.Id, job.Payload)
-		time.Sleep(5 * time.Second)  
+		time.Sleep(10 * time.Second)  
 	case "generate_report":
 		log.Printf("Simulating report generation for job %s...", job.Id)
 		time.Sleep(15 * time.Second) 

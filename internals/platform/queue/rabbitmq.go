@@ -65,7 +65,7 @@ func (broker *QueueStore) Publish (job *models.Job){
 
 func (broker *QueueStore) Consume()(<-chan amqp.Delivery , error){
 	err := broker.Channel.Qos(
-		1,
+		5,
 		0,
 		false,
 	)
@@ -73,7 +73,6 @@ func (broker *QueueStore) Consume()(<-chan amqp.Delivery , error){
 		log.Println("error while Qos: " , err);
 		return nil, fmt.Errorf("error while Qos: %w" , err);
 	}
-
 
 	msgs , err := broker.Channel.Consume(
 		broker.queueName,
