@@ -57,3 +57,9 @@ func (db *DBstore) GetJob(id string) (*models.Job , error){
 	return &job,err;
 
 }
+
+func (db *DBstore) UpdateJobStatus(id string , status string)(error){
+	query := `UPDATE jobs SET status=$1 , updated_at = $2  WHERE id = $3`;
+	_ , err := db.Store.Exec(query , status , time.Now().UTC() , id);
+	return err;
+}

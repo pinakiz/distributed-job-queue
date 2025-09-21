@@ -9,25 +9,22 @@ import (
 )
 
 type QueueStore struct{
-	Conn *amqp.Connection;
+	Channel *amqp.Channel
+	queueName string
 }
 
 func Init_queue(rabbitURL string)(*QueueStore, error){
 	conn , err := amqp.Dial(rabbitURL);
+	
 	if(err != nil){
-		return nil, fmt.Errorf("error while initilization of queue");
+		return nil, fmt.Errorf("error while initilization of queue: %w" , err);
 	}
-	return &QueueStore{conn}, nil;
-}
-
-func (broker *QueueStore) Publish (job *models.Job){
-	ch, err := broker.Conn.Channel();
+	ch , err := conn.Channel();
+	
 	if(err != nil){
-		log.Println("error while opening the channel (queue):", err);
+		log.Fatal("error while declaring queue ",err);
 	}
-	defer ch.Close();
-
-	queue , err := ch.QueueDeclare(
+	_ , err = ch.QueueDeclare(
 		"jobQueue",
 		false,
 		false,
@@ -35,12 +32,22 @@ func (broker *QueueStore) Publish (job *models.Job){
 		false,
 		nil,
 	)
-	if(err != nil){
-		log.Fatal("error while declaring queue ",err);
+
+	if err != nil{
+		log.Println("error while getting the queue channel" , err);
+		return nil , fmt.Errorf("error while getting the queue channel: %w" , err);
 	}
+	return &QueueStore{ch , "jobQueue"}, nil;
+}
+
+func (broker *QueueStore) Publish (job *models.Job){
+	ch:= broker.Channel;
+	
+	defer ch.Close();
+
 	if err := ch.Publish(
 		"",
-		queue.Name,
+		broker.queueName,
 		false,
 		false,
 		amqp.Publishing{
@@ -50,4 +57,34 @@ func (broker *QueueStore) Publish (job *models.Job){
 	);err != nil{
 		log.Println("error while pushing data into queue ", err);
 	}	
+}
+
+func (broker *QueueStore) Consume()(<-chan amqp.Delivery , error){
+	err := broker.Channel.Qos(
+		1,
+		0,
+		false,
+	)
+	if err != nil{
+		log.Println("error while Qos: " , err);
+		return nil, fmt.Errorf("error while Qos: %w" , err);
+	}
+
+
+	msgs , err := broker.Channel.Consume(
+		broker.queueName,
+		"",
+		false,
+		false,
+		false,
+		false,
+		nil,
+	)
+
+	if  err != nil {
+		log.Println("error while fetching msg from the queue: " , err);
+		return nil, fmt.Errorf("error while fetching msg from the queue: %w" , err);
+	}
+	return msgs, nil;
+
 }

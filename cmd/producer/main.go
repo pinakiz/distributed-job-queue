@@ -13,12 +13,8 @@ import (
 
 // db initilize
 // queue initilize
-// router and handler
-
 func main(){
-
 	listenAddr := ":8080";
-
 	db_host := os.Getenv("DBHOST")
 	db_port := os.Getenv("DBPORT")
 	db_user := os.Getenv("DBUSER")
@@ -52,5 +48,4 @@ func main(){
 		log.Fatal("Server Crash: ",err);
 		return;
 	}
-	
 }
