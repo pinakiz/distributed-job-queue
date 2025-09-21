@@ -1,4 +1,4 @@
-package worker
+package main
 
 import (
 	"djq/internals/platform/database"
