@@ -25,8 +25,6 @@ func (s *Service) CreateJob(jobType string, jobPayload json.RawMessage)(*models.
 		log.Println("error while job creation: ",err);
 		return &models.Job{}, err;
 	}
+	s.broker.Publish(job);
 	return job , nil;
-
-	
-
 }

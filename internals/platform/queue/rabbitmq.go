@@ -2,6 +2,7 @@ package queue
 
 import (
 	"djq/internals/models"
+	"encoding/json"
 	"fmt"
 	"log"
 
@@ -14,6 +15,7 @@ type QueueStore struct{
 }
 
 func Init_queue(rabbitURL string)(*QueueStore, error){
+	// fmt.Println(rabbitURL)
 	conn , err := amqp.Dial(rabbitURL);
 	
 	if(err != nil){
@@ -43,16 +45,18 @@ func Init_queue(rabbitURL string)(*QueueStore, error){
 func (broker *QueueStore) Publish (job *models.Job){
 	ch:= broker.Channel;
 	
-	defer ch.Close();
-
+	body , err := json.Marshal(job);
+	if(err != nil){
+		log.Println("Error: Failed to marshal job")
+	}
 	if err := ch.Publish(
 		"",
 		broker.queueName,
 		false,
 		false,
 		amqp.Publishing{
-			ContentType: "text/plain",
-			Body: []byte(job.Payload),
+			ContentType: "application/json",
+			Body: body,
 		},
 	);err != nil{
 		log.Println("error while pushing data into queue ", err);
@@ -86,5 +90,10 @@ func (broker *QueueStore) Consume()(<-chan amqp.Delivery , error){
 		return nil, fmt.Errorf("error while fetching msg from the queue: %w" , err);
 	}
 	return msgs, nil;
+}
 
+func (broker * QueueStore) Close(){
+	if(broker.Channel!=nil){
+		broker.Channel.Close()
+	}
 }

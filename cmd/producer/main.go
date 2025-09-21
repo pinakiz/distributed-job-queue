@@ -9,11 +9,18 @@ import (
 	"log"
 	"net/http"
 	"os"
+
+	"github.com/joho/godotenv"
 )
 
 // db initilize
 // queue initilize
 func main(){
+	
+	err := godotenv.Load();
+	if(err != nil){
+		log.Fatal("Error: failed env loading ,%v", err);
+	}
 	listenAddr := ":8080";
 	db_host := os.Getenv("DBHOST")
 	db_port := os.Getenv("DBPORT")

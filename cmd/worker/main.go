@@ -9,11 +9,18 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+
+	"github.com/joho/godotenv"
 )
 
 // db initilize
 // queue initilize
 func main(){
+	
+	err := godotenv.Load();
+	if(err != nil){
+		log.Fatal("Error: failed env loading");
+	}
 	db_host := os.Getenv("DBHOST")
 	db_port := os.Getenv("DBPORT")
 	db_user := os.Getenv("DBUSER")
@@ -29,7 +36,7 @@ func main(){
 		return
 	}
 	queue_url := os.Getenv("RABBIT_URL");
-
+	fmt.Println(db_host)
 	broker , err:= queue.Init_queue(queue_url);
 
 	if(err != nil){
@@ -37,7 +44,7 @@ func main(){
 	}
 
 	workerService := worker.Init_worker(dbStore, broker);
-
+	defer broker.Close();
 	go workerService.Run()	
 
 	quit := make(chan os.Signal, 1);

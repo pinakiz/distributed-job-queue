@@ -9,6 +9,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
+	_ "github.com/lib/pq" // PostgreSQL driver
 )
 
 type DBstore struct{
@@ -19,7 +20,7 @@ type DBstore struct{
 func Init_db(postgresDSN string) (*DBstore , error){
 	db , err := sqlx.Open("postgres",postgresDSN);
 	if(err != nil){
-		return nil, fmt.Errorf("error while initiating DB");
+		return nil, fmt.Errorf("Error: Failed to initiating DB: %w" , err);
 	}else{
 		return &DBstore{db}, nil;
 	}
@@ -36,7 +37,7 @@ func (db *DBstore) InsertJob(jobType string,jobPayload json.RawMessage)(*models.
 	job.UpdatedAt = job.CreatedAt;
 
 	query := `Insert INTO jobs (id, type, status, payload, created_at , updated_at) 
-			Values ($1 , $2 , $3 , $4 , $5 , %6)`
+			Values ($1 , $2 , $3 , $4 , $5 , $6)`
 	_,err := db.Store.Exec(query,job.Id,job.Type,job.Status,job.Payload,job.CreatedAt,job.UpdatedAt)
 	if(err != nil){
 		log.Println("error while inserting job into table");
